@@ -77,11 +77,11 @@ For `RandomGen` to be useful, it needs to be seeded with a truly random number. 
 
 ## SafeHash
 
-The `safehash.h` contains the **SafeHash** struct - a custom hashing implementation for use with `std::unordered_map`, replacing the one used by default in C++'s STD library, like this for example: `std::unordered_map<Hash, uint64_t, SafeHash> cachedBlocks;`.
+The `safehash.h` contains the **SafeHash** struct - a custom hashing implementation for use with `unordered_map` and/or derivatives, replacing the one used by default, like this for example: `std::unordered_map<Hash, uint64_t, SafeHash>`.
 
-This is done because the STD implementation of `unordered_map` uses `uint64_t` hashes, which is vulnerable to a potentially dangerous edge case where collisions could happen by having an enormous number of accounts and distributing them in a way that they have the same hash across all nodes.
+Previously, we used `std::unordered_map` in conjunction with [a custom fix from this CodeForces article](https://codeforces.com/blog/entry/62393) so we could continue using the C++ STD's implementation of `unordered_map` due to its blazing fast query times (basically the STD implementation uses `uint64_t` hashes, which is vulnerable to a potentially dangerous edge case where collisions could happen by having an enormous number of accounts and distributing them in a way that they have the same hash across all nodes - this fix is not perfect, since it still uses `uint64_t`, but it's better than nothing since nodes keep different hashes).
 
-[This article from CodeForces](https://codeforces.com/blog/entry/62393) provides a fix, which we implemented so we could continue using `std::unordered_map` normally, as it has blazing fast query times. It's not a perfect fix, since it still uses `uint64_t`, but it's better than nothing since nodes keep different hashes.
+Currently, we replaced the usage of `std::unordered_map` in the whole project with Boost's implementation (`boost::unordered_flat_map`) in conjunction with the [Wyhash](https://github.com/wangyi-fudan/wyhash) library, the highest and fastest quality hash function available for size_t (64-bit) hashes, to achieve a simpler, faster and more solid functionality.
 
 The file also contains the **FNVHash** struct - a custom implementation of the [Fowler-Noll-Vo](https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo\_hash\_function) hash struct, used within broadcast messages. This skips compiler optimizations and forces the whole string to be hashed, diminishing the chance of collisions (because, again, we're using 64-bit hashes).
 

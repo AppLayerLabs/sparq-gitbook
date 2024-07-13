@@ -89,7 +89,7 @@ Inside `erc20wrapper.h`, let's implement the header (comments were taken out so 
 
 class ERC20Wrapper : public DynamicContract {
   private:
-    SafeUnorderedMap<Address, std::unordered_map<Address, uint256_t, SafeHash>> tokensAndBalances_;
+    SafeUnorderedMap<Address, boost::unordered_flat_map<Address, uint256_t, SafeHash>> tokensAndBalances_;
     void registerContractFunctions() override;
 
   public:

@@ -49,6 +49,7 @@ We provide the following SafeVariable types, fully functional and ready for use 
 * `SafeAddress` - abstracts a 20-byte address
 * `SafeArray` - abstracts an array
 * `SafeBool` - abstracts a boolean
+* `SafeBytes` - abstracts a raw bytes string
 * `SafeInt` and `SafeUint` - abstract a range of signed/unsigned integers (see Solidity ABI)
 * `SafeString` - abstracts a string (either literal or raw bytes)
 * `SafeTuple` - abstracts a tuple/struct of any type

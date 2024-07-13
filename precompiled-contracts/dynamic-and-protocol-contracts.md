@@ -27,11 +27,12 @@ AppLayer's BDK provides ready-to-use templates for the following Dynamic Contrac
 
 There are also specific contracts that only exist for internal testing purposes and are not meant to be used as templates:
 
-* `SimpleContract` (template for a simple contract, used for both testing and teaching purposes)
-* `RandomnessTest` (template for testing random number generation)
+* `SimpleContract` (what it says on the tin - a simple contract, used for both testing and teaching purposes)
+* `RandomnessTest` (contract for testing random number generation)
 * `ERC721Test` (derivative contract meant to test the capabilities of the ERC721 template)
 * `TestThrowVars` (contract meant to test SafeVariable commit/revert functionality using exception throwing)
 * `ThrowTestA/B/C` (contracts meant to test nested call revert functionality)
+* `SnailTracer` / `SnailTracerOptimized` (C++ conversions of the [SnailTracer](https://github.com/karalabe/snailtracer) contract, used for benchmarking purposes)
 
 ## Protocol Contracts
 
@@ -79,7 +80,7 @@ The transpiled code should look similar to this:
 #include <...>
 class ExampleContract : public DynamicContract {
   private:
-    std::unordered_map<Address, uint256_t> values;
+    std::unordered_map<Address, uint256_t> values; // or boost::unordered_flat_map for example
     // Const-reference as they are not changed by the function.
     void setValue(const Address &addr, const uint256 &value);
   public:
