@@ -58,7 +58,9 @@ interface ContractManager {
 
 This will allow you to call the `ContractManager` precompiled contract and use it to deploy any of the available precompiles on the blockchain. Precompile deploys cost 100,000 gas each.
 
-To find out the address of your deployed contract, call the `getDeployedContractsForCreator()` function, passing the `ContractManager` address itself as the argument. See the example video that deploys an ERC20 contract:
+To find out the address of your deployed contract, call the `getDeployedContractsForCreator()` function, passing the `ContractManager` address itself as the argument. The address for ContractManager is hardcoded to `0x0001cb47ea6d8b55fe44fdd6b1bdb579efb43e61`.
+
+See the example video that deploys an ERC20 contract:
 
 {% file src=".gitbook/assets/applayer_step3.mp4" %}
 
