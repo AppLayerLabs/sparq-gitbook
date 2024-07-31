@@ -40,7 +40,7 @@ Continuously monitor the performance and security of your Protocol Contract afte
 
 ## Add the Protocol Contract to the protocolContractAddresses map
 
-Under `src/contract/contractmanager.h`, you will find a global `std::unordered_map` which contains the registered Protocol Contract addresses. You should stick to the same format as the other contracts, and add your contract address to the map.
+Under `src/contract/contractmanager.h`, you will find a global map which contains the registered Protocol Contract addresses. You should stick to the same format as the other contracts, and add your contract address to the map.
 
 ## Pay attention to the contract's state
 

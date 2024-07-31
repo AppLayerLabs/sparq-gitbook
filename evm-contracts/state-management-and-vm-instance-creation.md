@@ -9,11 +9,15 @@ The VM itself is owned and instantiated by the `State` class, which reflects a c
 ```cpp
 ContractHost(
   evmc_vm* vm,
+  DumpManager& manager,
   EventManager& eventManager,
   const Storage& storage,
+  const Hash& randomnessSeed,
   const evmc_tx_context& currentTxContext,
-  std::unordered_map<Address, NonNullUniquePtr<Account>, SafeHash>& accounts,
-  std::unordered_map<StorageKey, Hash, SafeHash>& vmStorage,
+  boost::unordered_flat_map<Address, std::unique_ptr<BaseContract>, SafeHash>& contracts,
+  boost::unordered_flat_map<Address, NonNullUniquePtr<Account>, SafeHash>& accounts,
+  boost::unordered_flat_map<StorageKey, Hash, SafeHash>& vmStorage,
+  boost::unordered_flat_map<Hash, Address, SafeHash>& txToAddr,
   const Hash& txHash,
   const uint64_t txIndex,
   const Hash& blockHash,

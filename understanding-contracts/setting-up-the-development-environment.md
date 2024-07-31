@@ -57,15 +57,15 @@ After building the image, run it with the following command (again, if using Lin
 
 ```bash
 # For Linux/Mac
-docker run -it -v $(pwd):/orbitersdk-volume -p 8080-8099:8080-8099 -p 8110-8111:8110-8111 bdk-cpp-dev:latest
+docker run -it -v $(pwd):/bdk-volume -p 8080-8099:8080-8099 -p 8110-8111:8110-8111 bdk-cpp-dev:latest
 # For Windows
-docker run -it -v %cd%:/orbitersdk-volume -p 8080-8099:8080-8099 -p 8110-8111:8110-8111 bdk-cpp-dev:latest
+docker run -it -v %cd%:/bdk-volume -p 8080-8099:8080-8099 -p 8110-8111:8110-8111 bdk-cpp-dev:latest
 ```
 
 where:
 
 * `$(pwd)` or `%cd%` is the absolute/full path to your repository's folder
-* `:/orbitersdk-volume` is the path inside the container where the BDK will be mounted. This volume is synced with the `bdk-cpp` folder inside the container
+* `:/bdk-volume` is the path inside the container where the BDK will be mounted. This volume is synced with the `bdk-cpp` folder inside the container
 * The `-p` flags expose the ports used by the nodes - the example exposes the default ports 8080-8099 and 8110-8111, if you happen to use different ports, change them accordingly
 
 When running the container, you will be logged in as the root user and will be able to develop, build and deploy the network within the container. Remember that we are using our local repo as a volume, so every change in the local folder will be reflected to the container in real time, and vice-versa (so you can develop outside and use the container only for build and deploy). You can also integrate the container with your favorite IDE or editor.
@@ -97,7 +97,7 @@ You can follow these steps to build the BDK in your own system. Dependencies are
 * **libsnappy** for database compression
 * **tmux** (for deploying)
 * (optional) **clang-tidy** for linting
-* (optional) **mold** for faster/better linking
+* (optional) **mold** for faster/more efficient linking
 
 The versions of those dependencies should suffice out-of-the-box for at least the following distros (or greater, including their derivatives):
 
@@ -107,14 +107,21 @@ The versions of those dependencies should suffice out-of-the-box for at least th
 * **Fedora 40**
 * Any rolling release distro from around **May 2024** onwards (check their repos to be sure)
 
-For older distros, you may need to compile some dependencies from source (specifically CMake and Boost). Make sure to uninstall them from the system first to prevent any version conflicts.
+For older distros, you may need to compile some dependencies from source (specifically CMake, Boost and/or GCC). Make sure to either uninstall them from the system first to prevent any version conflicts, or use a workaround like e.g. Debian's `update-alternatives` or similar.
+
+Specifically for GCC, make sure to also export the right paths for compilation in your environment in case you're using a self-compiled build. For example, in a Linux system, put something like this in your `~/.bashrc` file, changing the version accordingly to whichever one you have installed:
+
+```bash
+PATH=/usr/local/gcc-14.1.0/bin:$PATH
+LD_LIBRARY_PATH=/usr/local/gcc-14.1.0/lib64:$LD_LIBRARY_PATH
+```
 
 #### One-liners
 
 * For APT-based distros:
 
 ```bash
-sudo apt install git build-essential cmake mold tmux clang-tidy autoconf libtool pkg-config libboost-all-dev libcrypto++-dev libscrypt-dev libsnappy-dev libssl-dev zlib1g-dev openssl
+sudo apt install build-essential cmake tmux clang-tidy autoconf libtool pkg-config libabsl-dev libboost-all-dev libc-ares-dev libcrypto++-dev libgrpc-dev libgrpc++-dev librocksdb-dev libscrypt-dev libsnappy-dev libssl-dev zlib1g-dev openssl protobuf-compiler protobuf-compiler-grpc unison git
 ```
 
 ## Compiling
@@ -145,26 +152,13 @@ make -j$(nproc)
 cmake --build . -- -j$(nproc)
 ```
 
-After building, you can optionally run a test bench with the following command: `./src/bins/orbitersdkd-tests/orbitersdkd-tests -d yes` (the `-d yes` parameter will give a verbose output). You can also use filter tags to test specific parts of the project (e.g. `./src/bins/orbitersdkd-tests/orbitersdkd-tests [utils] -d yes` will test all the components inside the `src/utils` folder, `[utils][tx]` will test only the transaction-related components inside utils, etc.).
+After building, you can optionally run a test bench with the following command: `./src/bins/orbitersdkd-tests/orbitersdkd-tests -d yes` (the `-d yes` parameter will give a verbose output).
 
-Usable tags are:
-
-* `[utils]` - everything in `src/utils`
-  * `[utils][*]` - replace `*` with one of the class names: `block`, `db`, `hex`, `merkle`, `randomgen`, `secp256k1`, `strings`, `tx` (TxBlock), `txvalidator`, `utilsitself` (the last one refers to the actual Utils class), `[*][throw]` (for testing actual throwing conditions)
-* `[contract]` - everything in `src/contract`
-  * `[contract][*]` - replace `*` with one of the contract names: `abi`, `contractabigenerator`, `contractmanager`, `dexv2`, `erc20`, `erc20wrapper`, `nativewrapper`
-  * `[contract][variables][*]` - all SafeVariable types - `[*]` is optional, if you want to test specific variables, replace `*` with one of the class names: `safeaddress`, `safearray`, `safebool`, `safestring`, `safeuintX_t` (replace X with a uint size from 8 to 256), `safeunorderedmap`, `safevector`
-* `[core]` - everything in `src/core`
-  * `[core][*]` - replace `*` with one of the class names: `blockchain`, `options`, `rdpos`, `state`, `storage`
-  * `[core][rdpos][net]` - only networking-related functionality - append `[heavy]` for very taxing functionality
-* `[net]` - everything in `src/net`
-  * `[net][http][jsonrpc]` - only JSONRPC-related functionality
-* `[p2p]` - only P2P-related functionality
-* `[sdktestsuite]` - test the SDKTestSuite itself (test suite used internally for testing contracts)
+You can also use filter tags to test specific parts of the project (e.g. `./src/bins/orbitersdkd-tests/orbitersdkd-tests -d yes [utils]` will test all the components inside the `src/utils` folder, `[utils][tx]` will test only the transaction-related components inside utils, etc.). You can check all the available tags by doing a `grep -rw "\"\[.*\]\""` in the `tests` subfolder.
 
 ## Deploying
 
-Currently there are two ways to deploy an AppLayer node: _manual_, and _dockerized_. Go back to the project's root folder and check the `scripts` subfolder - there are two main scripts there used for deploying the node. You can pick whichever one you prefer, depending on your needs.
+Currently there are two ways to deploy an AppLayer node: *manual*, and *dockerized*. Go back to the project's root folder and check the `scripts` subfolder - there are two main scripts there used for deploying the node. You can pick whichever one you prefer, depending on your needs.
 
 ### Dockerized deploy
 

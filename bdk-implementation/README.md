@@ -11,6 +11,7 @@ The first few subchapters paint a more holistic view of the BDK, as most compone
 Looking at a higher level of abstraction, the original C++ implementation of the BDK is structured like this:
 
 * The `src/bins` folder contains the source files for the project's main executables - the blockchain executable itself, contract ABI generator and other testing-related executables are all coded here in their respective subfolders
+* The `src/bytes` folder contains code related to the `bytes` class, a container that deals with raw bytes - `bytes::View` is used extensively as a replacement for `BytesArrView`, the previous implementation
 * The `src/contract` folder contains everything related to the logic of smart contracts - from ABI parsing to custom variable types and template contracts
 * The `src/core` folder contains the heart of the BDK - the main components of the blockchain and what makes it tick
 * The `src/libs` folder contains third-party libraries not inherently tied to the project but used throughout development
@@ -23,8 +24,14 @@ For the more visually inclined, here is a source tree (headers only) containing 
 
 ```
 src
+├── bytes
+│   ├── initializer.h
+│   ├── join.h
+│   ├── range.h
+│   └── view.h
 ├── contract (Contracts)
 │   ├── abi.h (ABI - encoders, decoders, helper structs, etc.)
+│   ├── calltracer.h (trace namespace, Call struct, CallTracer class)
 │   ├── contractfactory.h (ContractFactory)
 │   ├── contract.h (ContractGlobals, ContractLocals, BaseContract)
 │   ├── contracthost.h (ContractHost)
@@ -44,9 +51,13 @@ src
 │   │   ├── erc20wrapper.h (ERC20Wrapper)
 │   │   ├── erc721.h (ERC721)
 │   │   ├── erc721test.h (ERC721Test, used solely for testing purposes)
+│   │   ├── erc721uristorage.h (ERC721URIStorage, converted from OpenZeppelin)
 │   │   ├── nativewrapper.h (NativeWrapper)
+│   │   ├── ownable.h (Ownable, converted from OpenZeppelin)
+│   │   ├── pebble.h (Pebble)
 │   │   ├── randomnesstest.h (RandomnessTest)
 │   │   ├── simplecontract.h (SimpleContract)
+│   │   ├── snailtracer.h, snailtraceroptimized.h (SnailTracer and SnailTracerOptimized, converted from the original EVM impl)
 │   │   ├── testThrowVars.h (TestThrowVars, used solely for testing purposes)
 │   │   └── throwtestA.h, throwtestB.h, throwtestC.h (for testing CM nested calls)
 │   └── variables (Safe Variables for use within Dynamic Contracts)
@@ -55,6 +66,7 @@ src
 │       ├── safearray.h (SafeArray)
 │       ├── safebase.h (SafeBase - used as base for all other types)
 │       ├── safebool.h (SafeBool)
+│       ├── safebytes.h (SafeBytes)
 │       ├── safeint.h (SafeInt)
 │       ├── safestring.h (SafeString)
 │       ├── safetuple.h (SafeTuple)
@@ -65,16 +77,16 @@ src
 │   ├── blockchain.h (Blockchain, Syncer)
 │   ├── consensus.h (Consensus)
 │   ├── dump.h (Dumpable, DumpManager, DumpWorker)
-│   ├── rdpos.h (Validator, rdPoS, rdPoSWorker)
-│   ├── state.h (State)
+│   ├── rdpos.h (Validator, rdPoS)
+│   ├── state.h (BlockValidationStatus, State)
 │   └── storage.h (Storage)
 ├── libs (Third-party libs)
 │   ├── BS_thread_pool_light.hpp (https://github.com/bshoshany/thread-pool)
 │   ├── catch2/catch_amalgamated.hpp (https://github.com/catchorg/Catch2)
-│   └── json.hpp (https://github.com/nlohmann/json)
+│   ├── json.hpp (https://github.com/nlohmann/json)
+│   ├── wyhash.h (https://github.com/wangyi-fudan/wyhash)
+│   └── zpp_bits.h (https://github.com/eyalz800/zpp_bits)
 ├── net (Networking)
-│   ├── grpcclient.h (gRPCClient)
-│   ├── grpcserver.h (gRPCServer)
 │   ├── http (HTTP part of networking)
 │   │   ├── httpclient.h (HTTPClient)
 │   │   ├── httplistener.h (HTTPListener)
@@ -82,20 +94,23 @@ src
 │   │   ├── httpserver.h (HTTPServer)
 │   │   ├── httpsession.h (HTTPQueue, HTTPSession)
 │   │   └── jsonrpc (Namespace for handling JSONRPC data)
-│   │       ├── decoding.h (functions for decoding JSONRPC data)
-│   │       ├── encoding.h (functions for encoding JSONRPC data)
-│   │       └── methods.h (declarations for JSONRPC methods)
+│   │       ├── blocktag.h (BlockTag, BlockTagOrNumber)
+│   │       ├── call.h (call() - a function that processes a JSON RPC call)
+│   │       ├── error.h (Error - for abstracting JSON RPC errors)
+│   │       ├── methods.h (contains all implemented JSON RPC methods)
+│   │       ├── parser.h (Parser and helper tempate functions)
+│   │       └── variadicparser.h (VariadicParser and helper template functions)
 │   └── p2p (P2P part of networking)
-│       ├── client.h (ClientFactory)
+│       ├── broadcaster.h (Broadcaster)
 │       ├── discovery.h (DiscoveryWorker - worker thread for ManagerDiscovery)
 │       ├── encoding.h (collection of enums, structs, classes, encoders and decoders used in P2P communications)
 │       ├── managerbase.h (ManagerBase - used as base for ManagerDiscovery and ManagerNormal)
 │       ├── managerdiscovery.h (ManagerDiscovery)
 │       ├── managernormal.h (ManagerNormal)
 │       ├── nodeconns.h (NodeConns)
-│       ├── server.h (ServerListener, Server)
 │       └── session.h (Session)
 └── utils (Base components)
+    ├── clargs.h (definitions for helper functions, enums and structs that deal with command-line argument parsing)
     ├── contractreflectioninterface.h (ContractReflectionInterface - interface for registering contracts)
     ├── db.h (DBPrefix, DBServer, DBEntry, DBBatch, DB)
     ├── dynamicexception.h (DynamicException - custom exception class)
@@ -103,7 +118,7 @@ src
     ├── finalizedblock.h (FinalizedBlock)
     ├── hex.h (Hex)
     ├── jsonabi.h (JsonAbi - namespace for writing contract ABIs to JSON format)
-    ├── logger.h (LogType, Log, LogInfo, Logger)
+    ├── logger.h (LogType, Log, LogInfo, Logger, LogicalLocationProvider)
     ├── merkle.h (Merkle)
     ├── options.h (Options singleton - generated by CMake through a .in file)
     ├── randomgen.h (RandomGen)
