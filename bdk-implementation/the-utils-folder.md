@@ -42,7 +42,7 @@ The class only contains the bare structure and data of a block - it doesn't do a
 
 ## Hex
 
-The `hex.h` file contains the **Hex** class - an abstraction of a strictly hex-formatted string (meaning it only accepts the characters within the range of `0x[1-9][a-f][A-F]`), which can also be set to strict or not (whether the string REQUIRES the `0x` prefix or not to be considered valid). Also contains aliases for working with raw-byte strings, such as **Byte, Bytes, BytesArr and BytesArrView**.
+The `hex.h` file contains the **Hex** class - an abstraction of a strictly hex-formatted string (meaning it only accepts the characters within the range of `0x[1-9][a-f][A-F]`), which can also be set to strict or not (whether the string REQUIRES the `0x` prefix or not to be considered valid). Also contains aliases for working with raw-byte strings, such as **Byte, Bytes and BytesArr**.
 
 ## JsonAbi
 
@@ -108,7 +108,8 @@ The `utils.h` file contains the **Utils** namespace - a place for generalized mi
 This list is only an example and does not reflect the entire contents of the file. We suggest you read the [Doxygen](https://doxygen.nl/) docs for more info about the class:
 
 * Helper functions that deal with printing (`safePrint()`, `safePrintTest()`, `printXYZ()`, etc.)
-* Aliases for working with integer types (`intX_t`, `uintX_t`, `SafeIntX_t`, `SafeUintX_t`), raw-byte strings (`Byte`,`Bytes`, `BytesArr`, `BytesArrView`), and helper functions for converting and/or manipulating them (e.g. `appendBytes()`, `uintXToBytes()`, `bytesToUintX()`, `bytesToString()`, `stringToBytes()`, etc.)
+* Aliases for working with integer types (`intX_t`, `uintX_t`, `SafeIntX_t`, `SafeUintX_t`), raw-byte strings (`Byte`,`Bytes`, `BytesArr`), and helper functions for converting and/or manipulating them (e.g. `appendBytes()`, `uintXToBytes()`, `bytesToUintX()`, `bytesToString()`, `stringToBytes()`, etc.)
+  * For `appendBytes()` specifically, it is recommended to use it if you need a buffer, otherwise you can use `bytes::join()` as a slightly faster replacement (e.g. if you have all the data required at once, use `bytes::join()`, if you have the data scattered across different places, use a `Bytes` object as a buffer and use it with `appendBytes()`)
 * A map with addresses for Protocol Contracts (e.g. `rdPoS` and `ContractManager`)
 * Enums for network types (`Networks`), contract function types (`FunctionTypes`) and contract types (`ContractType`)
 * The `Account` struct, used to maintain account balance and nonce statuses, as well as contract-specific data (if the account represents a contract)

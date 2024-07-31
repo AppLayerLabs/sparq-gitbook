@@ -11,6 +11,7 @@ The first few subchapters paint a more holistic view of the BDK, as most compone
 Looking at a higher level of abstraction, the original C++ implementation of the BDK is structured like this:
 
 * The `src/bins` folder contains the source files for the project's main executables - the blockchain executable itself, contract ABI generator and other testing-related executables are all coded here in their respective subfolders
+* The `src/bytes` folder contains code related to the `bytes` class, a container that deals with raw bytes - `bytes::View` is used extensively as a replacement for `BytesArrView`, the previous implementation
 * The `src/contract` folder contains everything related to the logic of smart contracts - from ABI parsing to custom variable types and template contracts
 * The `src/core` folder contains the heart of the BDK - the main components of the blockchain and what makes it tick
 * The `src/libs` folder contains third-party libraries not inherently tied to the project but used throughout development
@@ -23,8 +24,14 @@ For the more visually inclined, here is a source tree (headers only) containing 
 
 ```
 src
+├── bytes
+│   ├── initializer.h
+│   ├── join.h
+│   ├── range.h
+│   └── view.h
 ├── contract (Contracts)
 │   ├── abi.h (ABI - encoders, decoders, helper structs, etc.)
+│   ├── calltracer.h (trace namespace, Call struct, CallTracer class)
 │   ├── contractfactory.h (ContractFactory)
 │   ├── contract.h (ContractGlobals, ContractLocals, BaseContract)
 │   ├── contracthost.h (ContractHost)
@@ -44,9 +51,13 @@ src
 │   │   ├── erc20wrapper.h (ERC20Wrapper)
 │   │   ├── erc721.h (ERC721)
 │   │   ├── erc721test.h (ERC721Test, used solely for testing purposes)
+│   │   ├── erc721uristorage.h (ERC721URIStorage, converted from OpenZeppelin)
 │   │   ├── nativewrapper.h (NativeWrapper)
+│   │   ├── ownable.h (Ownable, converted from OpenZeppelin)
+│   │   ├── pebble.h (Pebble)
 │   │   ├── randomnesstest.h (RandomnessTest)
 │   │   ├── simplecontract.h (SimpleContract)
+│   │   ├── snailtracer.h, snailtraceroptimized.h (SnailTracer and SnailTracerOptimized, converted from the original EVM impl)
 │   │   ├── testThrowVars.h (TestThrowVars, used solely for testing purposes)
 │   │   └── throwtestA.h, throwtestB.h, throwtestC.h (for testing CM nested calls)
 │   └── variables (Safe Variables for use within Dynamic Contracts)
@@ -55,6 +66,7 @@ src
 │       ├── safearray.h (SafeArray)
 │       ├── safebase.h (SafeBase - used as base for all other types)
 │       ├── safebool.h (SafeBool)
+│       ├── safebytes.h (SafeBytes)
 │       ├── safeint.h (SafeInt)
 │       ├── safestring.h (SafeString)
 │       ├── safetuple.h (SafeTuple)
@@ -72,7 +84,8 @@ src
 │   ├── BS_thread_pool_light.hpp (https://github.com/bshoshany/thread-pool)
 │   ├── catch2/catch_amalgamated.hpp (https://github.com/catchorg/Catch2)
 │   ├── json.hpp (https://github.com/nlohmann/json)
-│   └── wyhash.h (https://github.com/wangyi-fudan/wyhash)
+│   ├── wyhash.h (https://github.com/wangyi-fudan/wyhash)
+│   └── zpp_bits.h (https://github.com/eyalz800/zpp_bits)
 ├── net (Networking)
 │   ├── http (HTTP part of networking)
 │   │   ├── httpclient.h (HTTPClient)

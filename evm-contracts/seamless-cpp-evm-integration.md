@@ -75,12 +75,12 @@ R callContractFunction(
       evmc_revision::EVMC_LATEST_STABLE_REVISION, &#x26;msg, recipientAcc.code.data(), recipientAcc.code.size()));
       this->leftoverGas_ = result.gas_left;
       if (result.status_code) {
-        auto hexResult = Hex::fromBytes(BytesArrView(result.output_data, result.output_data + result.output_size));
+        auto hexResult = Hex::fromBytes(bytes::View(result.output_data, result.output_data + result.output_size));
         throw DynamicException("ContractHost::callContractFunction: EVMC call failed - Type: "
           + Utils::getRealTypeName&#x3C;C>() + " at address: " + targetAddr.hex().get() + " - Result: " + hexResult.get()
         );
       }
-      return std::get&#x3C;0>(ABI::Decoder::decodeData&#x3C;R>(BytesArrView(result.output_data, result.output_data + result.output_size)));
+      return std::get&#x3C;0>(ABI::Decoder::decodeData&#x3C;R>(bytes::View(result.output_data, result.output_data + result.output_size)));
     } break;
     case ContractType::CPP : {
       this->deduceGas(1000);
