@@ -79,7 +79,7 @@ src
 │   ├── dump.h (Dumpable, DumpManager, DumpWorker)
 │   ├── rdpos.h (Validator, rdPoS)
 │   ├── state.h (BlockValidationStatus, State)
-│   └── storage.h (StorageStatus, Storage)
+│   └── storage.h (Storage)
 ├── libs (Third-party libs)
 │   ├── BS_thread_pool_light.hpp (https://github.com/bshoshany/thread-pool)
 │   ├── catch2/catch_amalgamated.hpp (https://github.com/catchorg/Catch2)

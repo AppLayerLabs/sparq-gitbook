@@ -57,10 +57,8 @@ Not all functions from the class update the state. Check the [Doxygen](https://d
 
 ## Storage
 
-The `storage.h` file contains the **Storage** class - an abstraction of the blockchain's history, maintaining a collection of blocks approved and validated by the network, other nodes, or itself through time. Those blocks store transactions, contracts, accounts, and can't be altered once they're in the blockchain, only searched for or read from. The file also contains the **StorageStatus** enum, used to indicate the status of a given block or transaction inside the Storage itself.
+The `storage.h` file contains the **Storage** class - an abstraction of the blockchain's history, maintaining a collection of blocks approved and validated by the network, other nodes, or itself through time. Those blocks store transactions, contracts, accounts, and can't be altered once they're in the blockchain, only searched for or read from.
 
-On node initialization, a history of up to 1000 of the most recent blocks is loaded into memory. Those blocks were stored in a previous initialization in the database. If there are no blocks (e.g. the blockchain was just deployed and initialized for the first time), a "genesis" block is automatically created and loaded in memory.
-
-Once a block and its transactions are received from the network, they're stored in memory. If more than 1000 blocks (or 1 million transactions) are stored in memory at a given time, older blocks are periodically saved to the database. This makes the blockchain lightweight memory-wise and extremely responsive.
+On node initialization, if there are no blocks (e.g. the blockchain was just deployed and initialized for the first time), a "genesis" block is automatically created and loaded in memory. The "latest" block is always kept in memory, with subsequent older blocks being dumped to and queried constantly from the database. This makes the blockchain lightweight memory-wise and extremely responsive.
 
 Searching for and reading from blocks in history is done in several places in the system, so when the Storage and DB classes are working together, they act as the end point of the blockchain's operations history.

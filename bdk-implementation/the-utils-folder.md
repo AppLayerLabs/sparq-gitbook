@@ -97,6 +97,8 @@ Even though FixedBytes can be used on its own (*it's meant to store only bytes*,
 * **Address** inherits **FixedBytes<20>** and abstracts a given 20-byte address
 * **StorageKey** inherits **FixedBytes<52>** and abstracts an EVM storage key (20 bytes address + 32 bytes slot key)
 
+All of these custom types are standard compliant (trivially copyable and trivially destructible), which means they can be handled like a STD container such as `std::vector` for example.
+
 ## TxBlock and TxValidator
 
 The `tx.h` file contains the **TxBlock** and **TxValidator** classes - abstractions for a block transaction and a Validator transaction, respectively. The implementation logic and details for those transactions are derived from the "Account" model, used by Ethereum and implemented by the [Aleth](https://github.com/ethereum/aleth) library, which is different from the "UTXO" model used by Bitcoin.
