@@ -101,6 +101,8 @@ Even though FixedBytes can be used on its own (*it's meant to store only bytes*,
 
 The `tx.h` file contains the **TxBlock** and **TxValidator** classes - abstractions for a block transaction and a Validator transaction, respectively. The implementation logic and details for those transactions are derived from the "Account" model, used by Ethereum and implemented by the [Aleth](https://github.com/ethereum/aleth) library, which is different from the "UTXO" model used by Bitcoin.
 
+It also contains a helper struct called `TxAdditionalData`, which contains metadata about a contract that was deployed in the chain, such as the transaction hash, how much gas was used in the transaction, if the call succeeded or not, and the contract's address.
+
 ## Utils
 
 The `utils.h` file contains the **Utils** namespace - a place for generalized miscellaneous utility functions, namespaces, enums and typedefs used across the BDK.

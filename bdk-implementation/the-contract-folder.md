@@ -12,6 +12,10 @@ This subchapter contains a brief overview of each one of the components inside t
 
 The `abi.h` file contains the **ABI** namespace - helper functions for handling Solidity ABI types and data natively, as well as the encoding and decoding of said data, also used for C++ <-> EVM inter-operability.
 
+## CallTracer
+
+The `calltracer.h` file contains the **Call** struct and the **CallTracer** class respectively, both under the **trace** namespace - those are used specifically for debugging purposes, tracing the flux of a contract call and collecting specific details about it, such as the call type, the sender and receiver addresses, the value sent, the gas used, inputs and outputs, errors and any related subcalls.
+
 ## BaseContract
 
 The `contract.h` file contains the **BaseContract** class - the base from which all smart contracts are derived - as well as the **ContractGlobals** and **ContractLocals** helper classes that provide access to global and local variables, respectively, for those contracts to work.
