@@ -44,7 +44,7 @@ The `rdpos.h` file contains the **rdPoS** class - the implementation of the *Ran
 
 ## State
 
-The `state.h` file contains the **State** class - an abstraction of the blockchain's current state of accounts, balances, nonces, transactions, token balances, deployed contracts and emitted events at the current block in the network, responsible for owning and maintaining all of those and a few other shared inner variables.
+The `state.h` file contains the **State** class - an abstraction of the blockchain's current state of accounts, balances, nonces, transactions, token balances and deployed contracts at the current block in the network, responsible for owning and maintaining all of those and a few other shared inner variables.
 
 A node's state and its data can only be altered through the process of block creation, either by creating a block itself, or receiving one from the network. In AppLayer's case, the class is often used for querying account data (current balance and nonce) and also processing and validating blocks and their transactions, as well as contract calls, following requirements such as (not limited to, but those are some of the most common):
 
@@ -57,7 +57,7 @@ Not all functions from the class update the state. Check the [Doxygen](https://d
 
 ## Storage
 
-The `storage.h` file contains the **Storage** class - an abstraction of the blockchain's history, maintaining a collection of blocks approved and validated by the network, other nodes, or itself through time. Those blocks store transactions, contracts, accounts, and can't be altered once they're in the blockchain, only searched for or read from.
+The `storage.h` file contains the **Storage** class - an abstraction of the blockchain's history, maintaining a collection of blocks approved and validated by the network, other nodes, or itself through time. Those blocks store transactions, contracts, accounts, and can't be altered once they're in the blockchain, only searched for or read from. The class is also responsible for storing and managing emitted events from contracts, if the node is initialized with the `RPC_TRACE` option set.
 
 On node initialization, if there are no blocks (e.g. the blockchain was just deployed and initialized for the first time), a "genesis" block is automatically created and loaded in memory. The "latest" block is always kept in memory, with subsequent older blocks being dumped to and queried constantly from the database. This makes the blockchain lightweight memory-wise and extremely responsive.
 

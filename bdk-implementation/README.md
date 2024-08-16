@@ -39,7 +39,7 @@ src
 │   ├── contractstack.h (ContractStack)
 │   ├── customcontracts.h (for declaring custom contracts)
 │   ├── dynamiccontract.h (DynamicContract)
-│   ├── event.h (Event, EventManager)
+│   ├── event.h (Event)
 │   ├── templates (folder for contract templates)
 │   │   ├── dexv2 (subfolder for the DEXV2 contract components)
 │   │   │   ├── dexv2factory.h (DEXV2Factory)

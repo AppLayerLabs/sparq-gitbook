@@ -44,11 +44,9 @@ The `customcontracts.h` file contains a tuple that holds all the registered cont
 
 The `dynamiccontract.h` file contains the **DynamicContract** class - the base from which all Dynamic Contracts are derived (while _BaseContract_ is mainly used for Protocol Contracts).
 
-## Event and EventManager
+## Event
 
-The `event.h` file contains the **Event** and **EventManager** classes, as well as the **EventContainer** typedef for indexing - they represent the subset of contract functionality related to Solidity events.
-
-_Event_ is responsible for abstracting a Solidity event's structure and data, while _EventManager_ is responsible for maintaining all emitted events within the blockchain. Events are supported for both C++ and EVM contracts.
+The `event.h` file contains the **Event** class - an abstraction of a Solidity event's structure and data, used extensively by contracts. Events are managed within the blockchain by the Storage class and are supported for both C++ and EVM contracts.
 
 ## The variables subfolder
 
