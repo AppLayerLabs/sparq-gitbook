@@ -27,11 +27,12 @@ AppLayer's BDK provides ready-to-use templates for the following Dynamic Contrac
 
 There are also specific contracts that only exist for internal testing purposes and are not meant to be used as templates:
 
-* `SimpleContract` (template for a simple contract, used for both testing and teaching purposes)
-* `RandomnessTest` (template for testing random number generation)
+* `SimpleContract` (what it says on the tin - a simple contract, used for both testing and teaching purposes)
+* `RandomnessTest` (contract for testing random number generation)
 * `ERC721Test` (derivative contract meant to test the capabilities of the ERC721 template)
 * `TestThrowVars` (contract meant to test SafeVariable commit/revert functionality using exception throwing)
 * `ThrowTestA/B/C` (contracts meant to test nested call revert functionality)
+* `SnailTracer` / `SnailTracerOptimized` (C++ conversions of the [SnailTracer](https://github.com/karalabe/snailtracer) contract, used for benchmarking purposes)
 
 ## Protocol Contracts
 
@@ -43,7 +44,8 @@ There are also specific contracts that only exist for internal testing purposes 
 
 Contracts in the AppLayer network are managed by a few classes working together (check the `src/core` and `src/contract` folders for more info on each class):
 
-* `State`  (`src/core/state.h`) is responsible for owning all the Dynamic Contracts registered in the blockchain (which you can get a list of by calling the class' `getCppContracts()` and/or `getEVMContracts()` functions, depending on which ones you need), as well as their global variables (name, address, owner, balances, events, etc.)
+* `State`  (`src/core/state.h`) is responsible for owning all the Dynamic Contracts registered in the blockchain (which you can get a list of by calling the class' `getCppContracts()` and/or `getEVMContracts()` functions, depending on which ones you need), as well as their global variables (name, address, owner, balances, etc.)
+* `Storage` (`src/core/storage.h`) is responsible for properly storing contract data, such as emitted events and the transactions that triggered them
 * `ContractManager` (`src/contract/contractmanager.h`) is responsible for solely creating and registering the contracts, then passing them to State (with the `ContractFactory` namespace providing helper functions to do so)
 * `ContractHost` (`src/contract/contracthost.h`) is responsible for allowing contracts to interact with each other and to enable them to modify balances - this kind of inter-communication is done by intercepting calls of functions from registered contracts (if the functor/signature matches), which is done through either an `eth_call` request or a transaction processed from a block
 * `ContractStack` (`src/contract/contractstack.h`) is responsible for managing alterations of data, like contract variables and account balances during nested contract call chains, by keeping a stack of changes made during a contract call, and automatically committing or reverting them in the account state when required (for non-view functions)
@@ -79,7 +81,7 @@ The transpiled code should look similar to this:
 #include <...>
 class ExampleContract : public DynamicContract {
   private:
-    std::unordered_map<Address, uint256_t> values;
+    std::unordered_map<Address, uint256_t> values; // or boost::unordered_flat_map for example
     // Const-reference as they are not changed by the function.
     void setValue(const Address &addr, const uint256 &value);
   public:

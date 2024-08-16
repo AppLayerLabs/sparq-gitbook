@@ -12,7 +12,7 @@ The database requires a filesystem path to open it (if it already exists) or cre
 
 Content in the database is stored as raw bytes. This is due to space optimizations, as one raw byte equals two UTF-8 characters (e.g. an address like `0x1234567890123456789012345678901234567890`, ignoring the "0x" prefix, occupies 20 raw bytes - "12 34 56 ..." - , but 40 bytes if converted to a string, since each byte becomes two separate characters - "1 2 3 4 5 6 ...").
 
-For the main CRUD operations, refer to the `has()`, `get()`, `put()` and `del()` functions. Due to how the database works internally, updating an entry is the same as inserting a different value in a key that already exists, effectively replacing the value that existed before (e.g. `put(oldKey, newValue)`). There's also `getBatch()` and `putBatch()` for batched operations, as well as `getKeys()` for fetching only the keys.
+For the main CRUD operations, refer to the `has()`, `get()`, `put()` and `del()` functions. Due to how the database works internally, updating an entry is the same as inserting a different value in a key that already exists, effectively replacing the value that existed before (e.g. `put(oldKey, newValue)`). There's also `getBatch()` and `putBatch()` for batched operations, as well as `getKeys()` for fetching only the keys, and `keyFromStr()` for encapsulating a key into a Bytes object.
 
 ## Structs and Prefixes
 
@@ -24,18 +24,19 @@ We have three helper structs to ease database manipulation:
 
 We also have a `DBPrefix` namespace to reference the database's prefixes in a simpler way:
 
-| Descriptor      | Prefix |
-| --------------- | ------ |
-| blocks          | 0x0001 |
-| blockHeightMaps | 0x0002 |
-| nativeAccounts  | 0x0003 |
-| txToBlocks      | 0x0004 |
-| rdPoS           | 0x0005 |
-| contracts       | 0x0006 |
-| contractManager | 0x0007 |
-| events          | 0x0008 |
-| vmStorage       | 0x0009 |
-| txToAddr        | 0x000A |
+| Descriptor         | Prefix |
+| ------------------ | ------ |
+| blocks             | 0x0001 |
+| heightToBlock      | 0x0002 |
+| nativeAccounts     | 0x0003 |
+| txToBlock          | 0x0004 |
+| rdPoS              | 0x0005 |
+| contracts          | 0x0006 |
+| contractManager    | 0x0007 |
+| events             | 0x0008 |
+| vmStorage          | 0x0009 |
+| txToAdditionalData | 0x000A |
+| txToCallTrace      | 0x000B |
 
 Those prefixes are concatenated to the start of the _key_, so an entry that would have, for example, a key named "abc" and a value of "123", if inserted to the "0003" prefix, would be like this inside the database (in raw bytes format, strings here are just for the sake of the explanation): `{"0003abc": "123"}`
 
@@ -49,7 +50,7 @@ Used to store serialized blocks based on their hashes.
 | ------------------ | ---------------- |
 | Prefix + BlockHash | Serialized Block |
 
-### blockHeightMaps
+### heightToBlock
 
 Used to store block hashes based on their heights.
 
@@ -73,7 +74,7 @@ For example, an account with balance 1000000 and nonce 2 would be serialized as 
 
 An account with balance 0 and nonce 0 would be serialized as `0000`.
 
-### txToBlocks
+### txToBlock
 
 Used to store block hashes, the tx indexes within that block and the block heights, based on their transaction hashes.
 
@@ -132,11 +133,18 @@ Used to store EVM-related stuff like storage keys and values (essentially the EV
 | ------------------------------------------- | ------------------------ |
 | Address (20 bytes) + Storage Key (32 bytes) | Storage Value (32 bytes) |
 
-### txToAddr
+### txToAdditionalData
 
-Used to store EVM transactions that created contracts, storing the transaction hash and the address where the contract was deployed.
+Used to store EVM transactions that created contracts, storing the transaction hash and additional data about the contract that was deployed (see the `TxAdditionalData` struct in `utils/tx.h` for more details).
 
-| Key                      | Value              |
-| ------------------------ | ------------------ |
-| Prefix + TransactionHash | ContractAddress    |
+| Key                      | Value                              |
+| ------------------------ | ---------------------------------- |
+| Prefix + TransactionHash | Serialized TxAdditionalData struct |
 
+### txToCallTrace
+
+Used to store debugging information about contract calls - see the `Call` struct in `contract/calltracer.h` for more details.
+
+| Key                      | Value                  |
+| ------------------------ | ---------------------- |
+| Prefix + TransactionHash | Serialized Call struct |
