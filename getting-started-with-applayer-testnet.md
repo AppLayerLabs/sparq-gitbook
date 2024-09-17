@@ -13,9 +13,8 @@ First, make sure you have set your preferred Web3 frontend (e.g. MetaMask) to co
 * **Network Name**: AppLayer Testnet
 * **RPC URL**: https://testnet-api.applayer.com/
 * **Chain ID**: 75338
-* **Currency symbol**: APPL
-
-Keep in mind that we don't have a block explorer at the moment, but this is expected to change in the future.
+* **Currency Symbol**: APPL
+* **Block Explorer URL**: https://testnet-explorer.applayer.com/
 
 Here's a video showing the configuration on MetaMask as an example:
 
