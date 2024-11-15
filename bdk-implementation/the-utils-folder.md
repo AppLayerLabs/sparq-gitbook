@@ -61,7 +61,7 @@ The `merkle.h` class contains the **Merkle** class - a custom implementation of 
 * [https://medium.com/coinmonks/implementing-merkle-tree-and-patricia-tree-b8badd6d9591](https://medium.com/coinmonks/implementing-merkle-tree-and-patricia-tree-b8badd6d9591)
 * [https://lab.miguelmota.com/merkletreejs/example/](https://lab.miguelmota.com/merkletreejs/example/)
 
-A "Merkle Tree" is a data structure in binary tree format (e.g. "heap sort"), where data is stored in the "leaves", and the "branches" are paths to reach their data. This structure is commonly used in the crypto space as a tool for _verification_: it hashes the previous layers in pairs to make new layers, bottom-up, until it reaches a single result which would be the "root" of the tree - this makes the root a unique fingerprint for the entire tree, so you only need to check the root hash to verify that both the tree and its leaves were not tampered with.
+A "Merkle Tree" is a data structure in binary tree format (e.g. "heap sort"), where data is stored in the "leaves", and the "branches" are paths to reach their data. This structure is commonly used in the crypto space as a tool for _verification_: it hashes the previous layers in pairs to make new layers, bottom-up, until it reaches a single result which would be the "root" of the tree - this makes the root a unique fingerprint for the entire tree, so you only need to check the root hash to verify both the tree and its leaves were not tampered with.
 
 ## Options
 
@@ -105,6 +105,15 @@ The `tx.h` file contains the **TxBlock** and **TxValidator** classes - abstracti
 
 It also contains a helper struct called `TxAdditionalData`, which contains metadata about a contract that was deployed in the chain, such as the transaction hash, how much gas was used in the transaction, if the call succeeded or not, and the contract's address.
 
+## UintConv, IntConv, StrConv and EVMCConv
+
+The respective files `uintconv.h`, `intconv.h`, `strconv.h` and `evmcconv.h` contain several namespaces related to aliases, conversion and manipulation of specific types of data (previously in the **Utils** namespace, now divided into their own namespaces):
+
+* **UintConv**: contains several `uintX_t` primitive type aliases used across the project, as well as their respective conversion functions (e.g. `uintXToBytes()`/`bytesToUintX()`)
+* **IntConv**: contains several `intX_t` primitive type aliases used across the project, as well as their respective conversion functions (e.g. `intXToBytes()`/`bytesToIntX()`)
+* **StrConv**: contains a few functions for converting and manipulating raw byte and UTF-8 strings (e.g. `padLeft()`/`padRight()` and their respective raw byte counterparts, `toLower()`/`toUpper()`, etc.)
+* **EVMCConv**: contains a few functions for converting and manipulating EVMC-specific data types (e.g. functors and their specific implementation of uint256)
+
 ## Utils
 
 The `utils.h` file contains the **Utils** namespace - a place for generalized miscellaneous utility functions, namespaces, enums and typedefs used across the BDK.
@@ -112,9 +121,9 @@ The `utils.h` file contains the **Utils** namespace - a place for generalized mi
 This list is only an example and does not reflect the entire contents of the file. We suggest you read the [Doxygen](https://doxygen.nl/) docs for more info about the class:
 
 * Helper functions that deal with printing (`safePrint()`, `safePrintTest()`, `printXYZ()`, etc.)
-* Aliases for working with integer types (`intX_t`, `uintX_t`, `SafeIntX_t`, `SafeUintX_t`), raw-byte strings (`Byte`,`Bytes`, `BytesArr`), and helper functions for converting and/or manipulating them (e.g. `appendBytes()`, `uintXToBytes()`, `bytesToUintX()`, `bytesToString()`, `stringToBytes()`, etc.)
+* Aliases for working with raw-byte strings (`Byte`,`Bytes`, `BytesArr`) and helper functions for converting and/or manipulating them (e.g. `appendBytes()`, `bytesToString()`, `stringToBytes()`, etc.)
   * For `appendBytes()` specifically, it is recommended to use it if you need a buffer, otherwise you can use `bytes::join()` as a slightly faster replacement (e.g. if you have all the data required at once, use `bytes::join()`, if you have the data scattered across different places, use a `Bytes` object as a buffer and use it with `appendBytes()`)
-* A map with addresses for Protocol Contracts (e.g. `rdPoS` and `ContractManager`)
+* The `ProtocolContractAddress` map for storing addresses for deployed Protocol Contracts (e.g. `rdPoS` and `ContractManager`)
 * Enums for network types (`Networks`), contract function types (`FunctionTypes`) and contract types (`ContractType`)
 * The `Account` struct, used to maintain account balance and nonce statuses, as well as contract-specific data (if the account represents a contract)
 * A wrapper for a pointer that ensures the pointer is never null (`NonNullUniquePtr`), as well as a wrapper for a pointer that forcefully nullifies it on destruction (`PointerNullifier`)
@@ -122,6 +131,3 @@ This list is only an example and does not reflect the entire contents of the fil
 * Several templated helper functions that deal with tuples, as well as helper functions that deal with Functors
 * The `sha3()` function, used extensively as the primary hash function for the entire project
 * The `randBytes()` function, used extensively as a random bytes string generator
-* `padLeft()` and `padRight()`, used for adding padding to strings at their left and right sides, respectively
-* `padLeftBytes()` and `padRightBytes()`, same as above, but specifically for use with raw byte strings
-* `toLower()` and `toUpper()`, used for converting strings to all-lower and all-upper case, respectively

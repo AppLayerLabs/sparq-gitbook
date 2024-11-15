@@ -140,6 +140,8 @@ Like in SimpleContract's case, you must include your contract's header in `custo
 Inside `erc20wrapper.cpp`, let's implement both constructors and the dumping function:
 
 ```cpp
+#include "erc20wrapper.h"
+
 ERC20Wrapper::ERC20Wrapper(const Address& contractAddress, const DB& db
 ) : DynamicContract(contractAddress, db), tokensAndBalances_(this)
 {
@@ -167,9 +169,8 @@ ERC20Wrapper::ERC20Wrapper(const Address& address, const Address& creator, const
 
 ERC20Wrapper::~ERC20Wrapper() {}
 
-DBBatch ERC20Wrapper::dump () const {
+DBBatch ERC20Wrapper::dump() const {
   DBBatch dbBatch = BaseContract::dump();
-
   for (auto i = tokensAndBalances_.cbegin(); i != tokensAndBalances_.cend(); ++i) {
     for (auto j = i->second.cbegin(); j != i->second.cend(); ++j) {
       const auto& key = i->first;

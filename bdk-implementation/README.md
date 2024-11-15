@@ -6,17 +6,19 @@ description: How the functional elements of AppLayer interact with each other.
 
 This chapter aims to explain in technical detail how the BDK is implemented, as well as its submodules and how everything comes together to deliver a blazing fast blockchain.
 
-The first few subchapters paint a more holistic view of the BDK, as most components are pretty straight-forward to understand, and developers are expected to use the [Doxygen](https://doxygen.nl) documentation as a reference to further understand how the project works. The later subchapters show some components that are particularly denser and/or complex enough that they warrant their own separated explanations.
+The first few subchapters paint a more holistic view of the BDK, as most components are pretty straight-forward to understand. Developers are expected to use the [Doxygen](https://doxygen.nl) documentation as a reference to further understand how the project works. The later subchapters show some components that are particularly denser and/or complex enough that they warrant their own separated explanations.
 
 Looking at a higher level of abstraction, the original C++ implementation of the BDK is structured like this:
 
-* The `src/bins` folder contains the source files for the project's main executables - the blockchain executable itself, contract ABI generator and other testing-related executables are all coded here in their respective subfolders
-* The `src/bytes` folder contains code related to the `bytes` class, a container that deals with raw bytes - `bytes::View` is used extensively as a replacement for `BytesArrView`, the previous implementation
+* The `src/bins` folder contains the source files for the project's main executables - the blockchain executable itself, contract ABI generator, network simulator, faucet API and other testing-related executables are all coded here in their respective subfolders
+* The `src/bytes` folder contains code related to the `bytes` class, a container that deals with raw bytes - specifically the `bytes::join()` function and the `bytes::View` class, both used extensively across the project
 * The `src/contract` folder contains everything related to the logic of smart contracts - from ABI parsing to custom variable types and template contracts
 * The `src/core` folder contains the heart of the BDK - the main components of the blockchain and what makes it tick
 * The `src/libs` folder contains third-party libraries not inherently tied to the project but used throughout development
 * The `src/net` folder contains everything related to networking, communication between nodes and support for protocols such as gRPC, HTTP, P2P, JSON-RPC, etc.
 * The `src/utils` folder contains several commonly-used functions, structures, classes and overall logic to support the functioning of the BDK as a whole
+
+There is also a `tests` folder that contains several unit tests for each of the components described above.
 
 ## Source tree
 
@@ -25,10 +27,10 @@ For the more visually inclined, here is a source tree (headers only) containing 
 ```
 src
 ├── bytes
-│   ├── initializer.h
-│   ├── join.h
-│   ├── range.h
-│   └── view.h
+│   ├── initializer.h (bytes::Initializer, bytes::SizedInitializer)
+│   ├── join.h (bytes::join())
+│   ├── range.h (bytes::Range, bytes::DataRange, bytes::BorrowedDataRange)
+│   └── view.h (bytes::View, bytes::Span)
 ├── contract (Contracts)
 │   ├── abi.h (ABI - encoders, decoders, helper structs, etc.)
 │   ├── calltracer.h (trace namespace, Call struct, CallTracer class)
@@ -59,7 +61,7 @@ src
 │   │   ├── simplecontract.h (SimpleContract)
 │   │   ├── snailtracer.h, snailtraceroptimized.h (SnailTracer and SnailTracerOptimized, converted from the original EVM impl)
 │   │   ├── testThrowVars.h (TestThrowVars, used solely for testing purposes)
-│   │   └── throwtestA.h, throwtestB.h, throwtestC.h (for testing CM nested calls)
+│   │   └── throwtestA.h, throwtestB.h, throwtestC.h (for testing nested contract calls)
 │   └── variables (Safe Variables for use within Dynamic Contracts)
 │       ├── reentrancyguard.h (ReentrancyGuard)
 │       ├── safeaddress.h (SafeAddress)
@@ -67,10 +69,10 @@ src
 │       ├── safebase.h (SafeBase - used as base for all other types)
 │       ├── safebool.h (SafeBool)
 │       ├── safebytes.h (SafeBytes)
-│       ├── safeint.h (SafeInt)
+│       ├── safeint.h (SafeInt and respective aliases)
 │       ├── safestring.h (SafeString)
 │       ├── safetuple.h (SafeTuple)
-│       ├── safeuint.h (SafeUint)
+│       ├── safeuint.h (SafeUint and respective aliases)
 │       ├── safeunorderedmap.h (SafeUnorderedMap)
 │       └── safevector.h (SafeVector)
 ├── core (Core components)
@@ -80,7 +82,7 @@ src
 │   ├── rdpos.h (Validator, rdPoS)
 │   ├── state.h (BlockValidationStatus, State)
 │   └── storage.h (Storage)
-├── libs (Third-party libs)
+├── libs (Third-party libraries)
 │   ├── BS_thread_pool_light.hpp (https://github.com/bshoshany/thread-pool)
 │   ├── catch2/catch_amalgamated.hpp (https://github.com/catchorg/Catch2)
 │   ├── json.hpp (https://github.com/nlohmann/json)
@@ -109,21 +111,25 @@ src
 │       ├── managernormal.h (ManagerNormal)
 │       ├── nodeconns.h (NodeConns)
 │       └── session.h (Session)
-└── utils (Base components)
+└── utils (Utility components)
     ├── clargs.h (definitions for helper functions, enums and structs that deal with command-line argument parsing)
-    ├── contractreflectioninterface.h (ContractReflectionInterface - interface for registering contracts)
+    ├── contractreflectioninterface.h (ContractReflectionInterface - interface for registering Dynamic Contracts)
     ├── db.h (DBPrefix, DBServer, DBEntry, DBBatch, DB)
     ├── dynamicexception.h (DynamicException - custom exception class)
     ├── ecdsa.h (PrivKey, Pubkey, UPubkey, Secp256k1)
+    ├── evmcconv.h (EVMCConv - namespace for EVMC-related data conversion functions)
     ├── finalizedblock.h (FinalizedBlock)
     ├── hex.h (Hex)
+    ├── intconv.h (IntConv - namespace for signed integer aliases and data conversion functions)
     ├── jsonabi.h (JsonAbi - namespace for writing contract ABIs to JSON format)
     ├── logger.h (LogType, Log, LogInfo, Logger, LogicalLocationProvider)
     ├── merkle.h (Merkle)
     ├── options.h (Options singleton - generated by CMake through a .in file)
     ├── randomgen.h (RandomGen)
     ├── safehash.h (SafeHash, FNVHash)
-    ├── strings.h (FixedBytes, Hash, Functor, Signature, Address)
+    ├── strconv.h (StrConv - namespace for string-related data conversion and manipulation functions)
+    ├── strings.h (FixedBytes and its derivatives - Hash, Functor, Signature, Address, StorageKey)
     ├── tx.h (TxBlock, TxValidator)
-    └── utils.h (definitions for Bytes/Account structs, uint/ethCallInfo types, Networks, and the Utils namespace)
+    ├── uintconv.h (UintConv - namespace for unsigned integer aliases and data conversion functions)
+    └── utils.h (Utils namespace and other misc struct and enum definitions)
 ```

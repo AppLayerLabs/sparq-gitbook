@@ -11,7 +11,7 @@ MyClass::updateValueAndThrow(const uint64_t key, const uint64_t value) {
   // Suppose the original value of myMap[key] is 5
   this->myMap[key] = value; // e.g. 10
   throw std::runtime_error("Error");
-  // myMap[key] is now 10, but it shouldn't be because it threw
+  // myMap[key] remains 10, but it shouldn't because it threw
 }
 ```
 
@@ -35,7 +35,7 @@ All SafeVariables inherit from the `SafeBase` class, which adhere to the followi
 
 * Have two internal variables: one for the current/original value and another for the previous/temporary value
   * Optionally, if required, an undo stack for dealing with more complex variables such as containers
-* Must override the `commit()`, and `revert()` functions
+* Must override the `commit()` and `revert()` functions
   * `commit()` should keep the current value as-is and either discard the previous one or equal it to the current, depending on the implementation details
   * `revert()` should do the opposite - discard the current value and set it back to the previous one (also applying the undo stack if it has one, again, depending on the implementation details)
 * Must be declared as *private* within contracts and initialized with `this` as the parameter - this enables the SafeVariable to mark itself as used in the `ContractManager`, allowing proper reversion of changes made to the contract

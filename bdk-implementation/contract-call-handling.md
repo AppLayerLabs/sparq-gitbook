@@ -12,7 +12,7 @@ For example, a call with a variable that starts with the value "10", then five c
 
 ## ContractStack class overview
 
-Here's an overview of the `ContractStack` class definition and functionalities:
+Here's an overview of the `ContractStack` class definition and functionalities (comments removed for easier reading, check the `contract/contractstack.h` file for more details):
 
 ```c++
 class ContractStack {
@@ -22,39 +22,24 @@ class ContractStack {
     boost::unordered_flat_map<Address, uint64_t, SafeHash> nonce_;
     boost::unordered_flat_map<StorageKey, Hash, SafeHash> storage_;
     std::vector<Event> events_;
-    std::vector<std::pair<Address,BaseContract*>> contracts_; // Contracts that have been created during the execution of the call, we need to revert them if the call reverts.
+    std::vector<std::pair<Address,BaseContract*>> contracts_;
     std::vector<std::reference_wrapper<SafeBase>> usedVars_;
 
   public:
-    inline void registerCode(const Address& addr, const Bytes& code)  {
-      this->code_.try_emplace(addr, code);
-    }
+    inline void registerCode(const Address& addr, const Bytes& code) { this->code_.try_emplace(addr, code); }
 
-    inline void registerBalance(const Address& addr, const uint256_t& balance) {
-      this->balance_.try_emplace(addr, balance);
-    }
+    inline void registerBalance(const Address& addr, const uint256_t& balance) { this->balance_.try_emplace(addr, balance); }
 
-    inline void registerNonce(const Address& addr, const uint64_t& nonce) {
-      this->nonce_.try_emplace(addr, nonce);
-    }
+    inline void registerNonce(const Address& addr, const uint64_t& nonce) { this->nonce_.try_emplace(addr, nonce); }
 
-    inline void registerStorageChange(const StorageKey& key, const Hash& value) {
-      this->storage_.try_emplace(key, value);
-    }
+    inline void registerStorageChange(const StorageKey& key, const Hash& value) { this->storage_.try_emplace(key, value); }
 
-    inline void registerEvent(Event event) {
-      this->events_.emplace_back(std::move(event));
-    }
+    inline void registerEvent(Event event) { this->events_.emplace_back(std::move(event)); }
 
-    inline void registerContract(const Address& addr, BaseContract* contract) {
-      this->contracts_.emplace_back(addr, contract);
-    }
+    inline void registerContract(const Address& addr, BaseContract* contract) { this->contracts_.emplace_back(addr, contract); }
 
-    inline void registerVariableUse(SafeBase& var) {
-      this->usedVars_.emplace_back(var);
-    }
+    inline void registerVariableUse(SafeBase& var) { this->usedVars_.emplace_back(var); }
 
-    /// Getters
     inline const boost::unordered_flat_map<Address, Bytes, SafeHash>& getCode() const { return this->code_; }
     inline const boost::unordered_flat_map<Address, uint256_t, SafeHash>& getBalance() const { return this->balance_; }
     inline const boost::unordered_flat_map<Address, uint64_t, SafeHash>& getNonce() const { return this->nonce_; }
@@ -65,5 +50,4 @@ class ContractStack {
 };
 ```
 
-The existence of only *one* instance of `ContractStack` per `ContractHost`, and its integration within the RAII framework of `ContractHost`, guarantees that state values are meticulously committed or reverted upon the completion or rollback of transactions. This robust design prevents state spill-over between different contract executions, fortifying transaction isolation and integrity across the blockchain network - even in the dynamic and mutable landscape of blockchain transactions, the integrity and consistency of state changes are meticulously maintained, safeguarding against unintended consequences and errors during contract execution.
-
+The existence of only *one* instance of `ContractStack` per `ContractHost`, as well as its integration within the RAII framework of `ContractHost`, guarantees that state values are meticulously committed or reverted upon the completion or rollback of transactions. This robust design prevents state spill-over between different contract executions, fortifying transaction isolation and integrity across the blockchain network - even in the dynamic and mutable landscape of blockchain transactions, the integrity and consistency of state changes are meticulously maintained, safeguarding against unintended consequences and errors during contract execution.

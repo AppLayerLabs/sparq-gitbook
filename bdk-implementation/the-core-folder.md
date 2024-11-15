@@ -57,7 +57,7 @@ Not all functions from the class update the state. Check the [Doxygen](https://d
 
 ## Storage
 
-The `storage.h` file contains the **Storage** class - an abstraction of the blockchain's history, maintaining a collection of blocks approved and validated by the network, other nodes, or itself through time. Those blocks store transactions, contracts, accounts, and can't be altered once they're in the blockchain, only searched for or read from. The class is also responsible for storing and managing emitted events from contracts, if the node is initialized with the `RPC_TRACE` option set.
+The `storage.h` file contains the **Storage** class - an abstraction of the blockchain's history, storing and maintaining a collection of blocks approved and validated by the network, other nodes, or itself through time. Those blocks store transactions, contracts, accounts, emitted contract events (if the node is initialized with the `RPC_TRACE` indexing mode set) and other blockchain-related data. Said data can't be altered once it's in the blockchain, it can only be searched for or read from.
 
 On node initialization, if there are no blocks (e.g. the blockchain was just deployed and initialized for the first time), a "genesis" block is automatically created and loaded in memory. The "latest" block is always kept in memory, with subsequent older blocks being dumped to and queried constantly from the database. This makes the blockchain lightweight memory-wise and extremely responsive.
 

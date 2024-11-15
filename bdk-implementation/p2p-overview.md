@@ -65,7 +65,7 @@ It's also important to be aware of the lifespan of the `io_context` and the obje
 
 ## Message types
 
-Every incoming message is promptly parsed by the manager via the `handleMessage()` function. These messages can fall into one of the following categories, with each one of them being treated distinctly:
+Every incoming message is promptly parsed by the manager via the `handleMessage()` function. These messages can fall into one of the following categories, with each one of them being treated distinctly (the names here are conceptual, the actual variable names differ in implementation):
 
 * `Request` - a query for specific data from another node - e.g. a list of blocks, a list of transactions, info about the node itself, etc.
 * `Answer` - an answer to a given request
@@ -80,7 +80,7 @@ Both `Request` and `Answer` messages work together in a bidirectional flow that 
 
 Both `Notification` and `Broadcast` messages, however, work with a simpler unidirectional flow, as the receiver node doesn't have to answer back to the sender. Instead, it verifies the received data and adds it to its own blockchain. The difference between both types is that `Notification` messages are never re-broadcast, while `Broadcast` messages may or may not be re-broadcast to other nodes, depending on whether said nodes had already received or not said broadcast in the past.
 
-Due to this specific condition, `Broadcast` messages are specifically handled by the `Broadcaster` class (`Broadcaster.h`), while the other types are handled by `ManagerBase` and its derivative classes.
+Due to this specific condition, `Broadcast` messages are specifically handled by the `Broadcaster` class (`net/p2p/broadcaster.h`), while the other types are handled by `ManagerBase` and its derivative classes.
 
 ## Asynchronous Message Parsing
 

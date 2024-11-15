@@ -12,12 +12,12 @@ AppLayer is empowering the next generation of **#Web3** builders! We share insig
 
 **Discord:** [https://discord.gg/mSheqXQrQm](https://discord.gg/mSheqXQrQm)
 
-**Twitter:** [https://twitter.com/AppLayerLabs](https://twitter.com/SparqNet)
+**Twitter:** [https://twitter.com/AppLayerLabs](https://twitter.com/AppLayerLabs)
 
 **Telegram:** [https://t.me/AppLayerLabs](https://t.me/AppLayerLabs)
 
 **Telegram Announcements:** [https://t.me/AppLayer\_News](https://t.me/AppLayer\_News)
 
-**Medium:** [https://medium.com/@AppLayerLabs](https://medium.com/@SparqNet)
+**Medium:** [https://medium.com/@AppLayerLabs](https://medium.com/@AppLayerLabs)
 
-**LinkedIn:** [https://www.linkedin.com/company/sparq-network](https://www.linkedin.com/company/sparq-network)
+**LinkedIn:** [https://www.linkedin.com/company/applayerlabs](https://www.linkedin.com/company/applayerlabs)
