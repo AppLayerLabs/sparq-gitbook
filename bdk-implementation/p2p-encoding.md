@@ -186,6 +186,6 @@ Requests data from a given block or range of blocks to another node.
 * Command ID: `0009`
 * Request Type: Answer or Request
 * Request Payload: block height start range + block height end range + bytes limit (minimum 1 block)
-* Request Example: TODO
+* Request Example: `0x00d6906a45be95f8cb0009000000000000000000000000000000010000000000000400`
 * Answer Payload: serialized block size + content (1..N blocks)
-* Answer Example: TODO
+* Answer Example: `0x0164fca114cca6773b0009000000000000346bc95fe4d72f96048212a311e3ccfb3ceaef75e801fe1e84ada2b459e185ba097d0871716384a2b3c7076f380f7873d6251e38af74e916fa8eaa0e3ca65347b2c9010db6bd216c7910cccb1dea09f6e7a1c1488446ebacb82cb3ef46c2341b59b0eacfd30704b89f92a41ae8970dd2c001eb08273a5d3c5a7beede721dcd6bcf5ad89c329d6db3658c6da18743131bc95116819fdb8ea16b0abdb7eaf19c840ed09f3e3136569f2d6edab18568da6aef33ae18b8b02ad0a998af0364e184fa987236000626f79d95b771000000000000000a00000000000030e300000077...`
