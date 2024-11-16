@@ -111,7 +111,7 @@ The respective files `uintconv.h`, `intconv.h`, `strconv.h` and `evmcconv.h` con
 
 * **UintConv**: contains several `uintX_t` primitive type aliases used across the project, as well as their respective conversion functions (e.g. `uintXToBytes()`/`bytesToUintX()`)
 * **IntConv**: contains several `intX_t` primitive type aliases used across the project, as well as their respective conversion functions (e.g. `intXToBytes()`/`bytesToIntX()`)
-* **StrConv**: contains a few functions for converting and manipulating raw byte and UTF-8 strings (e.g. `padLeft()`/`padRight()` and their respective raw byte counterparts, `toLower()`/`toUpper()`, etc.)
+* **StrConv**: contains a few functions for converting and manipulating raw byte and UTF-8 strings (e.g. `padLeft()`/`padRight()` and their respective raw byte counterparts, `toLower()`/`toUpper()`, `bytesToString()`, `stringToBytes()`, etc.)
 * **EVMCConv**: contains a few functions for converting and manipulating EVMC-specific data types (e.g. functors and their specific implementation of uint256)
 
 ## Utils
@@ -121,7 +121,7 @@ The `utils.h` file contains the **Utils** namespace - a place for generalized mi
 This list is only an example and does not reflect the entire contents of the file. We suggest you read the [Doxygen](https://doxygen.nl/) docs for more info about the class:
 
 * Helper functions that deal with printing (`safePrint()`, `safePrintTest()`, `printXYZ()`, etc.)
-* Aliases for working with raw-byte strings (`Byte`,`Bytes`, `BytesArr`) and helper functions for converting and/or manipulating them (e.g. `appendBytes()`, `bytesToString()`, `stringToBytes()`, etc.)
+* Aliases for working with raw-byte strings (`Byte`,`Bytes`, `BytesArr`) and helper functions for converting and/or manipulating them (e.g. `appendBytes()`)
   * For `appendBytes()` specifically, it is recommended to use it if you need a buffer, otherwise you can use `bytes::join()` as a slightly faster replacement (e.g. if you have all the data required at once, use `bytes::join()`, if you have the data scattered across different places, use a `Bytes` object as a buffer and use it with `appendBytes()`)
 * The `ProtocolContractAddress` map for storing addresses for deployed Protocol Contracts (e.g. `rdPoS` and `ContractManager`)
 * Enums for network types (`Networks`), contract function types (`FunctionTypes`) and contract types (`ContractType`)
