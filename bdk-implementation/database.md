@@ -8,7 +8,7 @@ BDK validators use an in-disk database for storing data about themselves and oth
 
 The database itself is an abstraction of a [Speedb](https://github.com/speedb-io/speedb) database - a simple key/value database, but handled in a different way: keys use *prefixes*, which makes it possible to batch read and write, so we can get around the "simple key/value" limitation and divide data into sectors.
 
-The database requires a filesystem path to open it (if it already exists) or create it on the spot (if it doesn't exist) during construction. It closes itself automatically on destruction.
+The database requires a filesystem path to open it (if it already exists) or create it on the spot (if it doesn't exist) during construction. It closes itself automatically on destruction. Optionally, it also accepts a bool for enabling compression (disabled by default), if needed.
 
 Content in the database is stored as raw bytes. This is due to space optimizations, as one raw byte equals two UTF-8 characters (e.g. an address like `0x1234567890123456789012345678901234567890`, ignoring the "0x" prefix, occupies 20 raw bytes - "12 34 56 ..." - , but 40 bytes if converted to a string, since each byte becomes two separate characters - "1 2 3 4 5 6 ...").
 
