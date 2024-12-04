@@ -8,15 +8,13 @@ description: >-
 
 AppLayer is primarily a _native, pre-compiled_ blockchain, which means its main focus is to run without the need for an EVM. However, the vast majority of the smart contract ecosystem operates and depends on [Solidity](https://docs.soliditylang.org/en/latest) - not only the contracts themselves but also the data they share across each other.
 
-When developing pre-compiled contracts, AppLayer makes use of an abstraction of Solidity's ABI encoding and decoding processes to properly translate between native and non-native data types. The **ABI** namespace, declared in `src/contract/abi.h`, contains several functions for Solidity ABI-related operations, for managing and manipulating data in Solidity format.
+When developing pre-compiled contracts, AppLayer makes use of an abstraction of Solidity's ABI encoding and decoding processes to properly translate between native and non-native data types. The **ABI** namespace (`src/contract/abi.h`) contains several functions for Solidity ABI-related operations, for managing and manipulating data in Solidity format.
 
 This is only an overview, check the [Doxygen](https://doxygen.nl) docs for more details on how those functions work.
 
 ### Solidity types
 
 The **Types** enum contains the supported Solidity data types in the ABI. Each value has an intrinsic equivalency with both the Solidity data type and the native C++ data type that it represents.
-
-TODO: gone? -> **BaseTypes** is a `std::variant` declared in `src/utils/utils.h` that abstracts all of the types in one typedef, for easier handling.
 
 Replace the **X** in "uintX" and "intX" with the desired size number. The ABI supports every size from 8 to 256 (inclusive), in multiples of 8 (e.g. 8, 16, 24, 32, 40, 48, ..., until 256) - in other words, `x <= 256 && x % 8 == 0`. **Enums are encoded as uint8**.
 

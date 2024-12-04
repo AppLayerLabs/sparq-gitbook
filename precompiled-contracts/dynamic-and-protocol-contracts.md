@@ -25,13 +25,20 @@ AppLayer's BDK provides ready-to-use templates for the following Dynamic Contrac
 * `DEXV2Router02` (template for a DEX contract router)
 * `UQ112x112` (namespace for dealing with fixed point fractions in DEX contracts)
 
+Some contracts were converted directly from their OpenZeppelin counterparts and are also available for use:
+
+* `ERC721URIStorage`
+* `Ownable`
+
 There are also specific contracts that only exist for internal testing purposes and are not meant to be used as templates:
 
-* `SimpleContract` (template for a simple contract, used for both testing and teaching purposes)
-* `RandomnessTest` (template for testing random number generation)
+* `SimpleContract` (what it says on the tin - a simple contract, used for both testing and teaching purposes)
+* `RandomnessTest` (contract for testing random number generation)
 * `ERC721Test` (derivative contract meant to test the capabilities of the ERC721 template)
 * `TestThrowVars` (contract meant to test SafeVariable commit/revert functionality using exception throwing)
 * `ThrowTestA/B/C` (contracts meant to test nested call revert functionality)
+* `SnailTracer` / `SnailTracerOptimized` (C++ conversions of the [SnailTracer](https://github.com/karalabe/snailtracer) contract, used for benchmarking purposes)
+* `Pebble` (contract meant to be used in the testnet as a little NFT mining game)
 
 ## Protocol Contracts
 
@@ -43,7 +50,8 @@ There are also specific contracts that only exist for internal testing purposes 
 
 Contracts in the AppLayer network are managed by a few classes working together (check the `src/core` and `src/contract` folders for more info on each class):
 
-* `State`  (`src/core/state.h`) is responsible for owning all the Dynamic Contracts registered in the blockchain (which you can get a list of by calling the class' `getCppContracts()` and/or `getEVMContracts()` functions, depending on which ones you need), as well as their global variables (name, address, owner, balances, events, etc.)
+* `State`  (`src/core/state.h`) is responsible for owning all the Dynamic Contracts registered in the blockchain (which you can get a list of by calling the class' `getCppContracts()` and/or `getEVMContracts()` functions, depending on which ones you need), as well as their global variables (name, address, owner, balances, etc.)
+* `Storage` (`src/core/storage.h`) is responsible for properly storing contract data, such as emitted events and the transactions that triggered them
 * `ContractManager` (`src/contract/contractmanager.h`) is responsible for solely creating and registering the contracts, then passing them to State (with the `ContractFactory` namespace providing helper functions to do so)
 * `ContractHost` (`src/contract/contracthost.h`) is responsible for allowing contracts to interact with each other and to enable them to modify balances - this kind of inter-communication is done by intercepting calls of functions from registered contracts (if the functor/signature matches), which is done through either an `eth_call` request or a transaction processed from a block
 * `ContractStack` (`src/contract/contractstack.h`) is responsible for managing alterations of data, like contract variables and account balances during nested contract call chains, by keeping a stack of changes made during a contract call, and automatically committing or reverting them in the account state when required (for non-view functions)
@@ -63,7 +71,7 @@ Given the example Solidity contract:
 pragma solidity ^0.8.10;
 
 contract ExampleContract {
-    mapping(address => uint256) values;c
+    mapping(address => uint256) values;
     function setValue(address addr, uint256 value) external {
         values[addr] = value;
         return;
@@ -71,7 +79,7 @@ contract ExampleContract {
 }
 ```
 
-The transpiled code should look similar to this:
+The transpiled code should look similar to this (this is only an example, read further for more details):
 
 * Declaration (`ExampleContract.h`)
 
@@ -79,14 +87,20 @@ The transpiled code should look similar to this:
 #include <...>
 class ExampleContract : public DynamicContract {
   private:
-    std::unordered_map<Address, uint256_t> values;
+    std::unordered_map<Address, uint256_t> values; // or boost::unordered_flat_map for example
     // Const-reference as they are not changed by the function.
-    void setValue(const Address &addr, const uint256 &value);
+    void setValue(const Address& addr, const uint256_t& value);
   public:
+    // Constructor for creating the contract the first time.
+    // "address" is where the contract will be deployed.
+    // "creator" is the address that created the contract.
+    // "chainId" is the chain ID where the contract will operate.
     ExampleContract(
-      const Address& contractAddress, const uint64_t& chainId,
-      std::unique_ptr<ContractManager> &contractManager,
-      std::unique_ptr<DBService&> db
+      const Address& address, const Address& creator, const uint64_t& chainId
+    );
+    // Constructor for loading the already-created contract from the database.
+    ExampleContract(
+      const Address& address, const DB& db
     );
     void callContractWithTransaction(const Tx& transaction);
 }
@@ -98,13 +112,19 @@ class ExampleContract : public DynamicContract {
 #include "ExampleContract.h"
 
 ExampleContract(
-  const Address& contractAddress, const uint64_t& chainId,
-  std::unique_ptr<ContractManager> &contractManager,
-  std::unique_ptr<DBService&> db
-) : Dynamic Contract(contractAddress, chainId, contractManager, db) {
+  const Address& address, const Address& creator, const uint64_t& chainId
+) : DynamicContract("ExampleContract", address, creator, chainId) {
   // Read the "values" variables from DB
-  // Code generated by the transpiller from all local variables
-  // of the solidity contract, on the ExampleContract, you have values as a address => uint256 mapping
+  // Code generated by the transpiler from all local variables
+  // of the solidity contract, on the ExampleContract, you have values as an address => uint256 mapping
+  ...
+}
+
+ExampleContract::ExampleContract(
+  const Address& address,
+  const DB& db
+) : DynamicContract(address, db) {
+  // Same thing but the contract already exists in the database so you just load it entirely from there
   ...
 }
 
@@ -131,28 +151,6 @@ void ExampleContract::callContractWithTransaction(const Tx& transaction) {
 
 ## The BaseContract class
 
-The `BaseContract` class, declared in `src/contract/contract.h`, is the base class which all contracts derive from. This class holds all the [Solidity global variables](https://docs.soliditylang.org/en/v0.8.17/units-and-global-variables.html), besides variables common among these contracts (such as contract address). Its header should look similar to the following:
-
-```cpp
-class BaseContract {
-  private:
-     // CONTRACT VARIABLES
-     const Address _contractAddress;
-     const uint64_t _chainId;
-     const std::unique_ptr<ContractManager>& _contractManager;
-     // GLOBAL VARIABLES
-     static Address _coinbase; // Current Miner Address
-     static uint256_t _blockNumber; // Current Block Number
-     static uint256_t _blockTimestamp; // Current Block Timestamp
-  public:
-     Contract(const Address& contractAddress, const uint64_t& chainId, std::unique_ptr<ContractManager> &contractManager) : _contractAddress(contractAddress), _chainId(chainId), _contractManager(contractManager) {}
-     const Address& coinbase() { return _coinbase };
-     const uint256_t& blockNumber() { return _blockNumber};
-     const uint256_t blockTimestamp() { return _blockTimestamp};
-     virtual void callContractWithTransaction(const Tx& transaction);
-     virtual std::string ethCallContract(const std::string& calldata) const;
-     friend State; // State can update the private global variables of the contracts
-}
-```
+The `BaseContract` class, declared in `src/contract/contract.h`, is the base class which all contracts derive from. This class holds all the [Solidity global variables](https://docs.soliditylang.org/en/v0.8.17/units-and-global-variables.html), besides variables common among these contracts (such as contract address). Have a look at the header file for further reference on its structure.
 
 Regarding the `callContractWithTransaction` and the `ethCallContract` functions, `callContractWithTransaction` is used by the State when calling from `processNewBlock()`, while `ethCallContract` is used by RPC to answer for `eth_call`. Strings returned by `ethCallContract` are hex strings encoded with the desired function result.

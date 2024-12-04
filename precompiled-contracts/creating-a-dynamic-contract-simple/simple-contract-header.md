@@ -17,7 +17,7 @@ Open the header file (`simplecontract.h`) and add the following lines:
 #include "../dynamiccontract.h"
 #include "../variables/safestring.h"
 #include "../variables/safetuple.h"
-#include "../../utils/utils.h" // SafeUintX_t aliases declared here
+#include "../variables/safeuint.h"
 
 class SimpleContract : public DynamicContract {
   private:
@@ -32,8 +32,7 @@ class SimpleContract : public DynamicContract {
 This is a simple skeleton so we can start building the proper contract. From top to bottom:
 
 * We create [include guards](https://en.wikipedia.org/wiki/Include\_guard) as a safety measure
-* We include the `DynamicContract` class and three SafeVariable classes for the contract's inner variables - `SafeString`, `SafeUint256_t` and `SafeTuple`, which represent a Solidity `string`, `uint256` and `tuple/struct` types, respectively (check the `src/contract/variables` subfolder for all available variable abstractions)
-  * For SafeUint (and SafeInt as well), we include `src/utils/utils.h` as all of the SafeUintX/SafeIntX aliases are declared there, if you want to use `SafeUint_t<X>`/`SafeInt_t<X>` then include `src/contract/variables/safeuint.h` (or `safeint.h`) directly instead
+* We include the `DynamicContract` class and three SafeVariable classes for the contract's inner variables - `SafeString`, `SafeUint256_t` and `SafeTuple`, which represent a Solidity `string`, `uint256` and `tuple/struct` types, respectively (check the `src/contract/variables` subfolder for all available variable abstractions) - for SafeUint (and SafeInt as well), you can either use `SafeUint_t<X>`/`SafeInt_t<X>` or the `SafeUintX_t`/`SafeIntX_t` aliases directly, as they are included in their respective header files
 * We create our `SimpleContract` class, inherit it from `DynamicContract`, and leave some space for the private and public members that will be coded next
 
 Now we can declare the members of our contract. We have to pay attention to some rules described earlier, which we'll go through slowly, one part at a time.
@@ -107,7 +106,7 @@ class SimpleContract : public DynamicContract {
     // Constructor from load. Load contract from database.
     SimpleContract(
       const Address& address,
-      const std::unique_ptr<DB> &db
+      const DB& db
     );
 
     // ...
@@ -119,20 +118,19 @@ Aside from our `name`, `number` and `tuple` variables, both constructors also ta
 ```cpp
 // Constructor that creates the contract from scratch
 DynamicContract(
-  const std::string& contractName,
   const Address& address,
   const Address& creator,
   const uint64_t& chainId
-) : BaseContract(contractName, address, creator, chainId) {};
+) : BaseContract("SimpleContract", address, creator, chainId) {};
 
 // Constructor that loads the contract from the database
 DynamicContract(
   const Address& address,
-  const std::unique_ptr<DB> &db
+  const DB& db
 ) : BaseContract(address, db) {};
 ```
 
-`address`, `creator`, `chainId` and `db` are internal variables used by the base class, and should _always_ be declared _last_. They are equivalent to:
+`address`, `creator`, `chainId` and `db` are internal variables used by the base class, and should *always* be declared *last*. They are equivalent to:
 
 | DynamicContract constructor argument | Taken from                                  |
 | ------------------------------------ | ------------------------------------------- |
@@ -141,7 +139,7 @@ DynamicContract(
 | chainId                              | this->options->getChainID()                 |
 | DB                                   | this->db                                    |
 
-Keep in mind that, when calling the base class constructor later on, the `contractName` argument MUST be EXACTLY the same as your contract's class name. This is because `contractName` is used to load the contract type from the database, so incorrectly naming it will result in a segfault at load time.
+Keep in mind that, when calling the base class constructor later on, the contract's name argument (in this case, "SimpleContract") MUST be EXACTLY the same as your contract's class name. This is because the name is used to load the contract type from the database, so incorrectly naming it will result in a segfault at load time.
 
 ## Declaring the Contract Events
 
@@ -181,7 +179,7 @@ class SimpleContract : public DynamicContract {
   * The first element is the argument type (e.g. `name` is a `std::string`, `number` is a `uint256_t`, `tuple` is a `std::tuple<std::string, uint256_t>`)
   * The second element is a bool that indicates whether the argument should be indexed or not.
   * If your event has no arguments at all you can omit it or pass an empty tuple instead (e.g. `this->emitEvent(__func__, std::make_tuple())`)
-* **(Optional)** A flag that indicates whether the event is anonymous or not. Events are non-anonymous by default, so if you wish you can omit this (which is the case for our example, it is equivalent to `this->emitEvent(__func__, std::make_tuple(name), false)` - if it was an anonymous event, the last flag would be `true` instead)
+* **(Optional)** A flag that indicates whether the event is anonymous or not. Events are non-anonymous by default (the flag defaults to `false`), so if you wish you can omit this (which is the case for our example, it is equivalent to `this->emitEvent(__func__, std::make_tuple(name), false)` - if it was an anonymous event, the last flag would be `true` instead)
 
 ## Registering the Contract Class
 
@@ -210,8 +208,7 @@ class SimpleContract : public DynamicContract {
       ContractReflectionInterface::registerContractMethods<
         SimpleContract, const std::string&, const uint256_t&, const std::tuple<std::string, uint256_t>&,
         ContractManagerInterface&,
-        const Address&, const Address&, const uint64_t&,
-        const std::unique_ptr<DB>&
+        const Address&, const Address&, const uint64_t&, const DB&
       >(
         std::vector<std::string>{"name_", "number_", "tuple_"},
         std::make_tuple("getName", &SimpleContract::getName, FunctionTypes::View

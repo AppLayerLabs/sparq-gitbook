@@ -4,7 +4,7 @@ description: A walkthrough on the basics of a Dynamic Contract's structure.
 
 # Creating a Dynamic Contract (Simple)
 
-Let's create a test contract that allows three variables - `name`, `number` and `tuple` - to be changed by the owner of the contract, as well as perform basic operations with structs/tuples and event emissions. We will call this contract `SimpleContract` (which just so happens to be already implemented by the project due to internal testing purposes, but you can do it yourself by hand - check the `simplecontract.{h,cpp,sol}` files for reference).
+Let's create a test contract that allows three variables - `name`, `number` and `tuple` - to be changed by the owner of the contract, as well as perform basic operations with structs/tuples and event emissions. We will call this contract `SimpleContract` (which just so happens to be already implemented by the project due to internal testing purposes, but you can do it yourself by hand - check the `src/contract/templates/simplecontract.{h,cpp,sol}` files for reference).
 
 ### Creating the Files
 

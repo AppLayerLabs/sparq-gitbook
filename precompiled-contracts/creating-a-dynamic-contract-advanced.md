@@ -81,6 +81,7 @@ Inside `erc20wrapper.h`, let's implement the header (comments were taken out so 
 #include <tuple>
 
 #include "../../utils/db.h"
+#include "../../utils/utils.h"
 #include "../abi.h"
 #include "../contractmanager.h"
 #include "../dynamiccontract.h"
@@ -89,26 +90,19 @@ Inside `erc20wrapper.h`, let's implement the header (comments were taken out so 
 
 class ERC20Wrapper : public DynamicContract {
   private:
-    SafeUnorderedMap<Address, std::unordered_map<Address, uint256_t, SafeHash>> tokensAndBalances_;
+    SafeUnorderedMap<Address, boost::unordered_flat_map<Address, uint256_t, SafeHash>> tokensAndBalances_;
     void registerContractFunctions() override;
 
   public:
     using ConstructorArguments = std::tuple<>;
 
-    ERC20Wrapper(
-      const Address& contractAddress, const DB& db
-    );
-
-    ERC20Wrapper(
-      const Address& address, const Address& creator,
-      const uint64_t& chainId
-    );
+    ERC20Wrapper(const Address& contractAddress, const DB& db);
+    ERC20Wrapper(const Address& address, const Address& creator, const uint64_t& chainId);
+    ~ERC20Wrapper() override;
 
     static void registerContract() {
       ContractReflectionInterface::registerContractMethods<
-        ERC20Wrapper,
-        const Address&, const Address&, const uint64_t&,
-        DB&
+        ERC20Wrapper, const Address&, const Address&, const uint64_t&, DB&
       >(
         std::vector<std::string>{},
         std::make_tuple("getContractBalance", &ERC20Wrapper::getContractBalance, FunctionTypes::View, std::vector<std::string>{"token"}),
@@ -128,7 +122,7 @@ class ERC20Wrapper : public DynamicContract {
     DBBatch dump() const override;
 };
 
-#endif // ERC20WRAPPER_H
+#endif
 ```
 
 Here, we recreated the contract's functions but also added a few extra functions (explained in the previous sections). In short, we create:
@@ -148,13 +142,11 @@ Inside `erc20wrapper.cpp`, let's implement both constructors and the dumping fun
 ```cpp
 #include "erc20wrapper.h"
 
-EERC20Wrapper::ERC20Wrapper(
-  ContractManagerInterface& interface, const Address& contractAddress, DB& db
-) : DynamicContract(interface, contractAddress, db), tokensAndBalances_(this)
+ERC20Wrapper::ERC20Wrapper(const Address& contractAddress, const DB& db
+) : DynamicContract(contractAddress, db), tokensAndBalances_(this)
 {
-  auto tokensAndBalances = this->db_.getBatch(this->getNewPrefix("tokensAndBalances_"));
-  for (const auto& dbEntry : tokensAndBalances) {
-    BytesArrView valueView(dbEntry.value);
+  for (const auto& dbEntry : db.getBatch(this->getNewPrefix("tokensAndBalances_"))) {
+    bytes::View valueView(dbEntry.value);
     this->tokensAndBalances_[Address(dbEntry.key)][Address(valueView.subspan(0, 20))] = Utils::fromBigEndian<uint256_t>(valueView.subspan(20));
   }
 
@@ -165,9 +157,8 @@ EERC20Wrapper::ERC20Wrapper(
   this->tokensAndBalances_.enableRegister();
 }
 
-ERC20Wrapper::ERC20Wrapper(
-  ContractManagerInterface& interface, const Address& address, const Address& creator, const uint64_t& chainId, DB& db
-) : DynamicContract(interface, "ERC20Wrapper", address, creator, chainId, db), tokensAndBalances_(this)
+ERC20Wrapper::ERC20Wrapper(const Address& address, const Address& creator, const uint64_t& chainId
+) : DynamicContract("ERC20Wrapper", address, creator, chainId), tokensAndBalances_(this)
 {
   this->tokensAndBalances_.commit();
 
@@ -176,11 +167,13 @@ ERC20Wrapper::ERC20Wrapper(
   this->tokensAndBalances_.enableRegister();
 }
 
+ERC20Wrapper::~ERC20Wrapper() {}
+
 DBBatch ERC20Wrapper::dump() const {
   DBBatch dbBatch = BaseContract::dump();
   for (auto i = tokensAndBalances_.cbegin(); i != tokensAndBalances_.cend(); ++i) {
     for (auto j = i->second.cbegin(); j != i->second.cend(); ++j) {
-      const auto& key = i->first.get();
+      const auto& key = i->first;
       Bytes value = j->first.asBytes();
       Utils::appendBytes(value, Utils::uintToBytes(j->second));
       dbBatch.push_back(key, value, this->getNewPrefix("tokensAndBalances_"));
@@ -205,32 +198,28 @@ uint256_t ERC20Wrapper::getContractBalance(const Address& token) const {
 
 uint256_t ERC20Wrapper::getUserBalance(const Address& token, const Address& user) const {
   auto it = this->tokensAndBalances_.find(token);
-  if (it == this->tokensAndBalances_.end()) {
-    return 0;
-  }
+  if (it == this->tokensAndBalances_.cend()) return 0;
   auto itUser = it->second.find(user);
-  if (itUser == it->second.end()) {
-    return 0;
-  }
+  if (itUser == it->second.cend()) return 0;
   return itUser->second;
 }
 
 void ERC20Wrapper::withdraw(const Address& token, const uint256_t& value) {
   auto it = this->tokensAndBalances_.find(token);
-  if (it == this->tokensAndBalances_.end()) throw std::runtime_error("Token not found");
+  if (it == this->tokensAndBalances_.end()) throw DynamicException("Token not found");
   auto itUser = it->second.find(this->getCaller());
-  if (itUser == it->second.end()) throw std::runtime_error("User not found");
-  if (itUser->second <= value) throw std::runtime_error("ERC20Wrapper: Not enough balance");
+  if (itUser == it->second.end()) throw DynamicException("User not found");
+  if (itUser->second <= value) throw DynamicException("ERC20Wrapper: Not enough balance");
   itUser->second -= value;
   this->callContractFunction(token, &ERC20::transfer, this->getCaller(), value);
 }
 
 void ERC20Wrapper::transferTo(const Address& token, const Address& to, const uint256_t& value) {
   auto it = this->tokensAndBalances_.find(token);
-  if (it == this->tokensAndBalances_.end()) throw std::runtime_error("Token not found");
+  if (it == this->tokensAndBalances_.end()) throw DynamicException("Token not found");
   auto itUser = it->second.find(this->getCaller());
-  if (itUser == it->second.end()) throw std::runtime_error("User not found");
-  if (itUser->second <= value) throw std::runtime_error("ERC20Wrapper: Not enough balance");
+  if (itUser == it->second.end()) throw DynamicException("User not found");
+  if (itUser->second <= value) throw DynamicException("ERC20Wrapper: Not enough balance");
   itUser->second -= value;
   this->callContractFunction(token, &ERC20::transfer, to, value);
 }
